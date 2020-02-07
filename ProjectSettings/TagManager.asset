@@ -6,6 +6,7 @@ TagManager:
   tags:
   - witch
   - fireball
+  - static
   layers:
   - Default
   - TransparentFX
