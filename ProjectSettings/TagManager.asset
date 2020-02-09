@@ -7,6 +7,8 @@ TagManager:
   - witch
   - fireball
   - static
+  - wolf
+  - troll
   layers:
   - Default
   - TransparentFX

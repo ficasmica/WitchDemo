@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
-using UnityEngine.UIElements;
+using UnityEngine.UI;
 
 public class Troll : MonoBehaviour
 {
@@ -53,7 +53,7 @@ public class Troll : MonoBehaviour
         switch(col.gameObject.tag){
             case "fireball":
                 health -= 0.5f;
-                //healthBar.fillAmount = health / maxHealth;
+                healthBar.fillAmount = health / maxHealth;
                 break;
         }
     }
