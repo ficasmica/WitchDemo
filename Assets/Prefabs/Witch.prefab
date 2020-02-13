@@ -394,6 +394,9 @@ MonoBehaviour:
   initCastTime: 0.4
   castPoint: {fileID: 1965740989360287737}
   rayPoint: {fileID: 765125869984123114}
+  blinkTimer: 4
+  rayTimer: 6
+  healTimer: 20
 --- !u!120 &1796593669192118516
 LineRenderer:
   m_ObjectHideFlags: 0
@@ -497,7 +500,7 @@ CapsuleCollider:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 363232385578858710}
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 13400000, guid: c7dd88937f909a84bbf85d20ec0b753b, type: 2}
   m_IsTrigger: 0
   m_Enabled: 1
   m_Radius: 0.025

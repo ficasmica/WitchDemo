@@ -31,6 +31,17 @@ public class Witch : MonoBehaviour
     private LineRenderer lr;
     public Transform castPoint;
     public Transform rayPoint;
+    private float fireballCooldown;
+    private float healCooldown;
+    private float blinkCooldown;
+    public float blinkTimer;
+    private float rayCooldown;
+    public float rayTimer;
+    private bool canRay = true;
+    private bool canBlink = true;
+    private bool canHeal = true;
+    public float healTimer;
+
 
     void Start(){
         lr = GetComponent<LineRenderer>();
@@ -41,6 +52,9 @@ public class Witch : MonoBehaviour
         anim.SetBool("isRay", false);
         healthBar = healthBarObj.GetComponent<Image>();
         health = maxHealth;
+        blinkCooldown = blinkTimer;
+        healCooldown = healTimer;
+        rayCooldown = rayTimer;
     }
 
     void Update(){
@@ -67,24 +81,6 @@ public class Witch : MonoBehaviour
         // Kastanje
         if (isCasting){
             switch(spell){
-                case "Boulder":
-                    if (Input.GetMouseButtonDown(0)){
-                        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-                        RaycastHit hit;
-                        if (Physics.Raycast(ray, out hit, Mathf.Infinity)){
-                            anim.SetTrigger("summon");
-                            isShooting = true;
-                            Meteor cloneMeteor = Instantiate(meteor, new Vector3(hit.point.x, 60f, hit.point.z), Quaternion.identity) as Meteor;
-                            castTime = initCastTime;
-                        }
-                    }
-                    if (Input.GetMouseButtonUp(0)){
-                        isCasting = false;
-                        detector.GetComponent<DrawDetector>().enabled = true;
-                        spell = null;
-                    }
-                    break;
-            
                 case "Fireball":
                     if (Input.GetMouseButtonDown(0)){
                         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
@@ -106,68 +102,117 @@ public class Witch : MonoBehaviour
                     break;
             
                 case "Blink":
-                    if (Input.GetMouseButtonDown(0)){
-                        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-                        RaycastHit hit;
-                        if (Physics.Raycast(ray, out hit, Mathf.Infinity)){
-                            //transform.position = hit.point;
-                            rb.MovePosition(hit.point);
-                        }
-                    }
-                    if (Input.GetMouseButtonUp(0)){
+                    if (!canBlink){
                         isCasting = false;
                         detector.GetComponent<DrawDetector>().enabled = true;
                         spell = null;
                     }
+                    else{
+                        if (Input.GetMouseButtonDown(0)){
+                            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+                            RaycastHit hit;
+                            if (Physics.Raycast(ray, out hit, Mathf.Infinity)){
+                                rb.MovePosition(hit.point);
+                            }
+                        }
+                        if (Input.GetMouseButtonUp(0)){
+                            canBlink = false;
+                            isCasting = false;
+                            detector.GetComponent<DrawDetector>().enabled = true;
+                            spell = null;
+                        }
+                    }
                     break;
             
                 case "Ray":
-                    if (Input.GetMouseButton(0)){
-                        isShooting = true;
-                        anim.SetBool("isRay", true);
-                        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-                        RaycastHit hit;
-                        if (Physics.Raycast(ray, out hit, Mathf.Infinity)){
-                            transform.LookAt(new Vector3(hit.point.x, transform.position.y, hit.point.z));
-                            lr.enabled = true;
-                            lr.SetPosition(0, rayPoint.position);
-                        }
-                        RaycastHit rayhit;
-                        if (Physics.Raycast(transform.position + Vector3.up, transform.TransformDirection(Vector3.forward), out rayhit, Mathf.Infinity)){
-                            if (rayhit.collider.gameObject.tag == "wolf"){
-                                Destroy(rayhit.collider.gameObject);
-                            }
-                        lr.SetPosition(1, rayhit.point);
-                        }
-                    }
-                    if (Input.GetMouseButtonUp(0)){
-                        anim.SetBool("isRay", false);
-                        lr.enabled = false;
+                    if (!canRay){
                         isCasting = false;
                         isShooting = false;
                         detector.GetComponent<DrawDetector>().enabled = true;
                         spell = null;
                     }
+                    else{
+                        if (Input.GetMouseButton(0)){
+                            isShooting = true;
+                            anim.SetBool("isRay", true);
+                            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+                            RaycastHit hit;
+                            if (Physics.Raycast(ray, out hit, Mathf.Infinity)){
+                                transform.LookAt(new Vector3(hit.point.x, transform.position.y, hit.point.z));
+                                lr.enabled = true;
+                                lr.SetPosition(0, rayPoint.position);
+                            }
+                            RaycastHit rayhit;
+                            if (Physics.Raycast(transform.position + Vector3.up, transform.TransformDirection(Vector3.forward), out rayhit, Mathf.Infinity)){
+                                if (rayhit.collider.gameObject.tag == "wolf"){
+                                    //Destroy(rayhit.collider.gameObject);
+                                    rayhit.collider.gameObject.GetComponent<Wolf>().health -= 0.25f * Time.deltaTime;
+                                    health += 0.1f * Time.deltaTime;
+                                }
+                            lr.SetPosition(1, rayhit.point);
+                            }
+                        }
+                        if (Input.GetMouseButtonUp(0)){
+                            anim.SetBool("isRay", false);
+                            lr.enabled = false;
+                            isCasting = false;
+                            isShooting = false;
+                            detector.GetComponent<DrawDetector>().enabled = true;
+                            spell = null;
+                            canRay = false;
+                        }        
+                    }
                     break;
             
                 case "Heal":
-                    anim.SetTrigger("summon");
-                    isShooting = true;
-                    health += 0.3f;
-                    if (health >= 1){
-                        health = 1f;
+                    if (!canHeal){
+                        spell = null;
+                        detector.GetComponent<DrawDetector>().enabled = true;
+                        isCasting = false;
                     }
-                    isCasting = false;
-                    spell = null;
-                    castTime = initCastTime;
-                    detector.GetComponent<DrawDetector>().enabled = true;
+                    else{
+                        anim.SetTrigger("summon");
+                        isShooting = true;
+                        health = 1f;
+                        /*
+                        if (health >= 1){
+                            health = 1f;
+                        }
+                        */
+                        isCasting = false;
+                        spell = null;
+                        castTime = initCastTime;
+                        detector.GetComponent<DrawDetector>().enabled = true;
+                        canHeal = false;
+                    }
                     break;
+            }
+        }
+
+        if (!canRay){
+            rayCooldown -= Time.deltaTime;
+            if (rayCooldown <= 0f){
+                canRay = true;
+                rayCooldown = rayTimer;
+            }
+        }
+        if (!canHeal){
+            healCooldown -= Time.deltaTime;
+            if (healCooldown <= 0f){
+                canHeal = true;
+                healCooldown = healTimer;
+            }
+        }
+        if (!canBlink){
+            blinkCooldown -= Time.deltaTime;
+            if (blinkCooldown <= 0f){
+                canBlink = true;
+                blinkCooldown = blinkTimer;
             }
         }
 
         // Health kontrola
         healthBar.fillAmount = health / maxHealth;
-        Debug.Log(healthBar.fillAmount);
         if (health <= 0f){
             anim.SetTrigger("dead");
             GetComponent<Witch>().enabled = false;

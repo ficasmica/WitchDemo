@@ -18,8 +18,14 @@ public class Wolf : MonoBehaviour
     public bool dealDmg = false;
     public float dealDmgRate = 0f;
     public float attackWaitTime;
+    public EnemySpawner spawner;
+    public bool isDead = false;
+    public bool isSlowed = false;
+    public float slowedTime;
+    private float delTime = 8f;
 
     void Start(){
+        spawner = GameObject.FindGameObjectWithTag("spawner").GetComponent<EnemySpawner>();
         agent = GetComponent<NavMeshAgent>();
         healthBar = healthBarObj.GetComponent<Image>();
         anim = GetComponent<Animator>();
@@ -27,6 +33,7 @@ public class Wolf : MonoBehaviour
         anim.SetBool("isRunning", true);
         pathTimer = newPathTime;
         health = maxHealth;
+        slowedTime = 5f;
     }
 
     void Update(){
@@ -62,16 +69,41 @@ public class Wolf : MonoBehaviour
             anim.SetBool("isAttacking", false);
         }
 
-        if (health == 0){
+        if (health <= 0){
+            isDead = true;
             agent.isStopped = true;
+            anim.speed = 1f;
             anim.SetTrigger("dead");
         }
+
+        if (isDead){
+            spawner.wolfCount -= 1;
+            GetComponent<BoxCollider>().enabled = false;
+            delTime -= Time.deltaTime;
+            if (delTime <= 0f){
+                Destroy(gameObject);
+            }
+        }
+
+        if (isSlowed){
+            slowedTime -= Time.deltaTime;
+            if (slowedTime <= 0f){
+                agent.speed *= 2f;
+                anim.speed *= 2f;
+                slowedTime = 5f;
+                isSlowed = false;
+            }
+        }
+        healthBar.fillAmount = health / maxHealth;
     }
 
     void OnTriggerEnter(Collider col){
         switch(col.gameObject.tag){
             case "fireball":
                 health -= 0.5f;
+                agent.speed *= 0.5f;
+                anim.speed *= 0.5f;
+                isSlowed = true;
                 healthBar.fillAmount = health / maxHealth;
                 break;
         }
