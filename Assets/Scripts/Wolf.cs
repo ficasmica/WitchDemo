@@ -23,6 +23,7 @@ public class Wolf : MonoBehaviour
     public bool isSlowed = false;
     public float slowedTime;
     private float delTime = 8f;
+    public bool isRayed = false;
 
     void Start(){
         spawner = GameObject.FindGameObjectWithTag("spawner").GetComponent<EnemySpawner>();
@@ -33,7 +34,7 @@ public class Wolf : MonoBehaviour
         anim.SetBool("isRunning", true);
         pathTimer = newPathTime;
         health = maxHealth;
-        slowedTime = 5f;
+        slowedTime = 3f;
     }
 
     void Update(){
@@ -59,7 +60,7 @@ public class Wolf : MonoBehaviour
             anim.SetBool("isAttacking", true);
             dealDmgRate -= Time.deltaTime;
             if (dealDmgRate <= 0f){
-                Witch.health -= 0.1f;
+                Witch.health -= 0.25f;
                 dealDmgRate = 1.9f;
             }
         }
@@ -74,10 +75,12 @@ public class Wolf : MonoBehaviour
             agent.isStopped = true;
             anim.speed = 1f;
             anim.SetTrigger("dead");
+            spawner.wolfCount -= 1;
+            spawner.wolfsKilled += 1;
+            GetComponent<Wolf>().enabled = false;
         }
 
         if (isDead){
-            spawner.wolfCount -= 1;
             GetComponent<BoxCollider>().enabled = false;
             delTime -= Time.deltaTime;
             if (delTime <= 0f){
@@ -90,10 +93,17 @@ public class Wolf : MonoBehaviour
             if (slowedTime <= 0f){
                 agent.speed *= 2f;
                 anim.speed *= 2f;
-                slowedTime = 5f;
+                slowedTime = 3f;
                 isSlowed = false;
+                isRayed = false;
             }
         }
+
+        if (!isRayed){
+            agent.speed = 12f;
+            anim.speed = 1f;
+        }
+
         healthBar.fillAmount = health / maxHealth;
     }
 
@@ -101,6 +111,7 @@ public class Wolf : MonoBehaviour
         switch(col.gameObject.tag){
             case "fireball":
                 health -= 0.5f;
+                isRayed = true;
                 agent.speed *= 0.5f;
                 anim.speed *= 0.5f;
                 isSlowed = true;

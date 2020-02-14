@@ -41,6 +41,11 @@ public class Witch : MonoBehaviour
     private bool canBlink = true;
     private bool canHeal = true;
     public float healTimer;
+    private GameObject rayedWolf;
+    public Image frostImage;
+    public Image rayImage;
+    public Image healImage;
+    public Image blinkImage;
 
 
     void Start(){
@@ -114,6 +119,7 @@ public class Witch : MonoBehaviour
                             if (Physics.Raycast(ray, out hit, Mathf.Infinity)){
                                 rb.MovePosition(hit.point);
                             }
+                            blinkImage.fillAmount = 0f;
                         }
                         if (Input.GetMouseButtonUp(0)){
                             canBlink = false;
@@ -146,13 +152,23 @@ public class Witch : MonoBehaviour
                             if (Physics.Raycast(transform.position + Vector3.up, transform.TransformDirection(Vector3.forward), out rayhit, Mathf.Infinity)){
                                 if (rayhit.collider.gameObject.tag == "wolf"){
                                     //Destroy(rayhit.collider.gameObject);
+                                    rayedWolf = rayhit.collider.gameObject;
                                     rayhit.collider.gameObject.GetComponent<Wolf>().health -= 0.25f * Time.deltaTime;
+                                    rayhit.collider.gameObject.GetComponent<Animator>().speed = 0.5f;
+                                    rayhit.collider.gameObject.GetComponent<NavMeshAgent>().speed = 6f;
+                                    rayhit.collider.gameObject.GetComponent<Wolf>().isRayed = true;
                                     health += 0.1f * Time.deltaTime;
                                 }
                             lr.SetPosition(1, rayhit.point);
                             }
                         }
                         if (Input.GetMouseButtonUp(0)){
+                            foreach (GameObject wolf in GameObject.FindGameObjectsWithTag("wolf")){
+                                if (wolf.GetComponent<Wolf>().isRayed == true){
+                                    wolf.GetComponent<Wolf>().isRayed = false;
+                                }
+                            }
+                            rayImage.fillAmount = 0f;
                             anim.SetBool("isRay", false);
                             lr.enabled = false;
                             isCasting = false;
@@ -174,6 +190,7 @@ public class Witch : MonoBehaviour
                         anim.SetTrigger("summon");
                         isShooting = true;
                         health = 1f;
+                        healImage.fillAmount = 0f;
                         /*
                         if (health >= 1){
                             health = 1f;
@@ -191,6 +208,7 @@ public class Witch : MonoBehaviour
 
         if (!canRay){
             rayCooldown -= Time.deltaTime;
+            rayImage.fillAmount += 0.1667f * Time.deltaTime;
             if (rayCooldown <= 0f){
                 canRay = true;
                 rayCooldown = rayTimer;
@@ -198,6 +216,7 @@ public class Witch : MonoBehaviour
         }
         if (!canHeal){
             healCooldown -= Time.deltaTime;
+            healImage.fillAmount += 0.04f * Time.deltaTime;
             if (healCooldown <= 0f){
                 canHeal = true;
                 healCooldown = healTimer;
@@ -205,6 +224,7 @@ public class Witch : MonoBehaviour
         }
         if (!canBlink){
             blinkCooldown -= Time.deltaTime;
+            blinkImage.fillAmount += 0.1667f * Time.deltaTime;
             if (blinkCooldown <= 0f){
                 canBlink = true;
                 blinkCooldown = blinkTimer;

@@ -394,9 +394,13 @@ MonoBehaviour:
   initCastTime: 0.4
   castPoint: {fileID: 1965740989360287737}
   rayPoint: {fileID: 765125869984123114}
-  blinkTimer: 4
+  blinkTimer: 6
   rayTimer: 6
-  healTimer: 20
+  healTimer: 25
+  frostImage: {fileID: 0}
+  rayImage: {fileID: 0}
+  healImage: {fileID: 0}
+  blinkImage: {fileID: 0}
 --- !u!120 &1796593669192118516
 LineRenderer:
   m_ObjectHideFlags: 0
